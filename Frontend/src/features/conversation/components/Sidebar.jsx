@@ -31,7 +31,7 @@ function Sidebar({ isSidebarOpen, onToggleSidebar }) {
         {/* Logo / Sidebar Toggle */}
         <button
           type="button"
-          onClick={onToggleSidebar}
+          onClick={isSidebarOpen?()=>{}:onToggleSidebar}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           className="
