@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import {GoogleGenAI} from "@google/genai"
+import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();
 
@@ -13,59 +13,82 @@ const ai = new GoogleGenAI({
   apiKey: process.env.GEMINI_API_KEY,
 });
 
+/* Middleware */
 app.use(cors());
 app.use(express.json());
 
-
-// Health check
+/* Health Check */
 app.get("/", (req, res) => {
   res.json({
     message: "NovaChat backend is running",
   });
 });
 
-
-// Chat endpoint
+/* Chat Endpoint */
 app.post("/api/chat", async (req, res) => {
-  const { message } = req.body;
+  const { messages } = req.body;
 
-  // Validate request
-  if (!message?.trim()) {
+  /* Validate messages */
+  if (!Array.isArray(messages) || messages.length === 0) {
     return res.status(400).json({
-      error: "Message is required",
+      error: "Messages are required",
     });
   }
 
   try {
+    /* Convert frontend messages to Gemini format */
+    const conversationHistory = messages
+      .filter(
+        (message) =>
+          typeof message?.content === "string" &&
+          message.content.trim() &&
+          ["user", "assistant"].includes(message.role)
+      )
+      .map((message) => ({
+        role: message.role === "assistant" ? "model" : "user",
+        parts: [
+          {
+            text: message.content.trim(),
+          },
+        ],
+      }));
+
+    if (conversationHistory.length === 0) {
+      return res.status(400).json({
+        error: "No valid messages found",
+      });
+    }
+
+    /* Generate AI response */
     const response = await ai.models.generateContent({
       model: "gemini-3.6-flash",
 
-      contents: message,
+      contents: conversationHistory,
 
       config: {
         systemInstruction: `
-You are NovaChat, a smart, helpful, natural conversational AI assistant.
+You are NovaChat, a smart, helpful, and natural conversational AI assistant.
 
 LANGUAGE RULES:
-- Understand English, Hindi, Marathi, and Marathi written in Roman/English letters.
-- Reply in the same language the user is using.
-- Never randomly switch to another language.
+- Understand English, Hindi, Marathi, and Marathi written in Roman letters.
+- Reply in the same language style used by the user.
+- Never randomly switch languages.
 - If the user writes Roman Marathi, reply naturally in Roman Marathi.
 - Understand casual conversation, jokes, and slang.
 
 RESPONSE STYLE:
 - Answer the user's actual question directly.
-- Keep simple questions short.
-- Give detailed explanations when the user asks for them.
+- Keep simple answers concise.
+- Give detailed explanations when requested.
 - Do not unnecessarily repeat the user's question.
-- Do not produce unnecessarily long answers.
 - Avoid huge walls of text.
 - Use Markdown when it improves readability.
 - Use headings, bullet points, numbered lists, and code blocks when useful.
 - For programming questions, provide practical and correct examples.
-- If you are unsure about something, say so instead of inventing information.
+- If unsure, say so instead of inventing information.
 - Be friendly, natural, and conversational.
-`,
+        `.trim(),
+
         maxOutputTokens: 2048,
       },
     });
@@ -81,7 +104,6 @@ RESPONSE STYLE:
     return res.json({
       reply,
     });
-
   } catch (error) {
     console.error("Gemini API error:", error);
 
@@ -93,7 +115,7 @@ RESPONSE STYLE:
   }
 });
 
-
+/* Start Server */
 app.listen(PORT, () => {
   console.log(`NovaChat backend running on port ${PORT}`);
 });

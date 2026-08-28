@@ -11,6 +11,7 @@ import {
 import MessageBubble from "./MessageBubble";
 
 function ChatScreen() {
+  
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -33,10 +34,7 @@ function ChatScreen() {
 
     textarea.style.height = "auto";
 
-    textarea.style.height = `${Math.min(
-      textarea.scrollHeight,
-      180
-    )}px`;
+    textarea.style.height = `${Math.min(textarea.scrollHeight, 180)}px`;
   };
 
   const sendMessage = async () => {
@@ -50,8 +48,11 @@ function ChatScreen() {
       content: trimmedMessage,
     };
 
-    // Add user message
-    setMessages((prev) => [...prev, userMessage]);
+    // Create updated conversation history
+    const updatedMessages = [...messages, userMessage];
+
+    // Update UI immediately
+    setMessages(updatedMessages);
 
     setInput("");
 
@@ -62,62 +63,44 @@ function ChatScreen() {
     setIsLoading(true);
 
     try {
-      const response = await fetch(
-        "http://localhost:5000/api/chat",
-        {
-          method: "POST",
+      const response = await fetch("http://localhost:5000/api/chat", {
+        method: "POST",
 
-          headers: {
-            "Content-Type": "application/json",
-          },
+        headers: {
+          "Content-Type": "application/json",
+        },
 
-          body: JSON.stringify({
-            message: userMessage.content,
-          }),
-        }
-      );
+        // Send full conversation history
+        body: JSON.stringify({
+          messages: updatedMessages,
+        }),
+      });
 
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(
-          data.error ||
-            "Something went wrong. Please try again."
+          data.error || "Something went wrong. Please try again.",
         );
       }
 
       const aiMessage = {
         id: crypto.randomUUID(),
         role: "assistant",
-        content:
-          data.reply ||
-          "Sorry, I couldn't generate a response.",
+        content: data.reply || "Sorry, I couldn't generate a response.",
       };
 
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
       console.error("Chat error:", error);
 
-      let errorText =
-        "Something went wrong. Please try again.";
-
-      if (error.message?.includes("429")) {
-        errorText =
-          "The AI service is currently busy. Please try again in a moment.";
-      } else if (error.message) {
-        errorText = error.message;
-      }
-
       const errorMessage = {
         id: crypto.randomUUID(),
         role: "assistant",
-        content: errorText,
+        content: error.message || "Something went wrong. Please try again.",
       };
 
-      setMessages((prev) => [
-        ...prev,
-        errorMessage,
-      ]);
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
@@ -172,19 +155,15 @@ function ChatScreen() {
 
   return (
     <main className="relative flex  min-w-0 flex-1 flex-col overflow-hidden bg-[#fafafa]">
-
       {/* Main Scroll Area */}
       <div className="min-h-0 flex-1 mt-12 overflow-y-auto">
-        
         {messages.length === 0 ? (
           /* ================= WELCOME SCREEN ================= */
 
           <div className="flex  items-center justify-center sm:px-8">
             <div className="w-full max-w-4xl">
-
               {/* Hero */}
               <div className="mx-auto max-w-4xl text-center">
-                
                 <div
                   className="
                     mx-auto mb-4
@@ -214,8 +193,8 @@ function ChatScreen() {
                 </h2>
 
                 <p className="mx-auto mt-5 max-w-lg text-sm leading-7 text-zinc-500">
-                  Ask questions, explore ideas, solve problems,
-                  or get help with your next project.
+                  Ask questions, explore ideas, solve problems, or get help with
+                  your next project.
                 </p>
               </div>
 
@@ -228,9 +207,7 @@ function ChatScreen() {
                     <button
                       key={item.title}
                       type="button"
-                      onClick={() =>
-                        handleSuggestion(item.prompt)
-                      }
+                      onClick={() => handleSuggestion(item.prompt)}
                       className="
                         group relative overflow-hidden
                         rounded-2xl
@@ -275,18 +252,13 @@ function ChatScreen() {
           /* ================= CHAT MESSAGES ================= */
 
           <div className="mx-auto w-full max-w-4xl px-5 pb-8 pt-4 sm:px-8">
-            
             {messages.map((message) => (
-              <MessageBubble
-                key={message.id}
-                message={message}
-              />
+              <MessageBubble key={message.id} message={message} />
             ))}
 
             {/* AI Loading */}
             {isLoading && (
               <div className="flex gap-3 py-6">
-                
                 <div
                   className="
                     flex size-8 shrink-0
@@ -324,7 +296,6 @@ function ChatScreen() {
         "
       >
         <div className="mx-auto w-full max-w-4xl">
-          
           <div
             className="
               relative flex items-end gap-2

@@ -9,7 +9,15 @@ import {
   Trash,
 } from "lucide-react";
 
-function Sidebar({ isSidebarOpen, onToggleSidebar }) {
+function Sidebar({
+  isSidebarOpen,
+  onToggleSidebar,
+  onNewChat,
+  onDeleteAll,
+  chats,
+  activeChatId,
+  onSelectChat,
+}) {
   const [isHovered, setIsHovered] = useState(false);
 
   const icon =
@@ -31,7 +39,7 @@ function Sidebar({ isSidebarOpen, onToggleSidebar }) {
         {/* Logo / Sidebar Toggle */}
         <button
           type="button"
-          onClick={isSidebarOpen?()=>{}:onToggleSidebar}
+          onClick={isSidebarOpen ? () => {} : onToggleSidebar}
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           className="
@@ -39,9 +47,7 @@ function Sidebar({ isSidebarOpen, onToggleSidebar }) {
             items-center justify-center
             rounded-xl bg-zinc-900 text-white
           "
-          aria-label={
-            isSidebarOpen ? "Close sidebar" : "Open sidebar"
-          }
+          aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
         >
           {icon}
         </button>
@@ -53,9 +59,7 @@ function Sidebar({ isSidebarOpen, onToggleSidebar }) {
               NovaChat
             </h1>
 
-            <p className="text-xs text-zinc-500">
-              Your AI assistant
-            </p>
+            <p className="text-xs text-zinc-500">Your AI assistant</p>
           </div>
         )}
 
@@ -81,6 +85,7 @@ function Sidebar({ isSidebarOpen, onToggleSidebar }) {
       {/* New Chat */}
       <button
         type="button"
+        onClick={onNewChat}
         className={`
           mt-6 flex w-full cursor-pointer items-center rounded-xl
           p-2.5 text-sm font-medium text-zinc-700
@@ -91,16 +96,13 @@ function Sidebar({ isSidebarOpen, onToggleSidebar }) {
       >
         <SquarePen size={19} className="shrink-0" />
 
-        {isSidebarOpen && (
-          <span className="whitespace-nowrap">
-            New chat
-          </span>
-        )}
+        {isSidebarOpen && <span className="whitespace-nowrap">New chat</span>}
       </button>
 
       {/* Delete All */}
       <button
         type="button"
+        onClick={onDeleteAll}
         className={`
           flex w-full cursor-pointer items-center rounded-xl
           p-2.5 text-sm font-medium text-zinc-700
@@ -111,25 +113,47 @@ function Sidebar({ isSidebarOpen, onToggleSidebar }) {
       >
         <Trash size={19} className="shrink-0" />
 
-        {isSidebarOpen && (
-          <span className="whitespace-nowrap">
-            Delete all
-          </span>
-        )}
+        {isSidebarOpen && <span className="whitespace-nowrap">Delete all</span>}
       </button>
 
       {/* Conversations */}
-      <div className="mt-6 min-h-0 flex-1">
+      <div className="mt-7 min-h-0 flex-1 overflow-y-auto">
         {isSidebarOpen && (
           <>
-            <p className="px-2 text-xs font-semibold uppercase tracking-wider text-zinc-400">
+            <p className="mb-3 px-3 text-[11px] font-medium uppercase tracking-wider text-zinc-400">
               Conversations
             </p>
 
-            <div className="mt-3 flex flex-col gap-1">
-              <div className="rounded-lg px-3 py-2 text-sm text-zinc-500">
-                No conversations yet
-              </div>
+            <div className="space-y-1 px-1">
+              {chats.length === 0 ? (
+                <p className="px-2 py-3 text-xs leading-5 text-zinc-400">
+                  No conversations yet.
+                </p>
+              ) : (
+                chats.map((chat) => {
+                  const isActive = chat.id === activeChatId;
+
+                  return (
+                    <button
+                      key={chat.id}
+                      type="button"
+                      onClick={() => onSelectChat(chat.id)}
+                      className={`
+                  w-full truncate rounded-lg px-3 py-2.5
+                  text-left text-sm transition-colors
+
+                  ${
+                    isActive
+                      ? "bg-zinc-100 font-medium text-zinc-900"
+                      : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+                  }
+                `}
+                    >
+                      {chat.title}
+                    </button>
+                  );
+                })
+              )}
             </div>
           </>
         )}
@@ -144,11 +168,7 @@ function Sidebar({ isSidebarOpen, onToggleSidebar }) {
             text-sm font-medium text-zinc-900
             transition-colors duration-200
             hover:bg-zinc-100
-            ${
-              isSidebarOpen
-                ? "gap-3 px-1 py-2.5"
-                : "justify-center p-2"
-            }
+            ${isSidebarOpen ? "gap-3 px-1 py-2.5" : "justify-center p-2"}
           `}
         >
           <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-amber-400 text-black">
@@ -159,10 +179,7 @@ function Sidebar({ isSidebarOpen, onToggleSidebar }) {
             <>
               <span>Guest</span>
 
-              <ChevronUp
-                className="absolute right-2 text-zinc-600"
-                size={18}
-              />
+              <ChevronUp className="absolute right-2 text-zinc-600" size={18} />
             </>
           )}
         </button>
