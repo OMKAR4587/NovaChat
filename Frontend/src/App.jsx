@@ -27,8 +27,12 @@ function App() {
     };
 
     setChats((prev) => [newChat, ...prev]);
-
     setActiveChatId(newChat.id);
+
+    // Mobile वर new chat केल्यावर sidebar close
+    if (window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+    }
 
     return newChat;
   };
@@ -40,15 +44,47 @@ function App() {
 
   const handleSelectChat = (chatId) => {
     setActiveChatId(chatId);
+
+    // Mobile वर chat select केल्यावर sidebar close
+    if (window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+    }
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-white">
+    <div className="relative flex h-dvh w-full overflow-hidden bg-[#fafafa]">
+      {/* Mobile Overlay */}
+      {isSidebarOpen && (
+        <button
+          type="button"
+          aria-label="Close sidebar"
+          onClick={handleToggleSidebar}
+          className="
+            fixed inset-0 z-40
+            bg-black/20
+            backdrop-blur-[2px]
+            md:hidden
+          "
+        />
+      )}
+
+      {/* Sidebar */}
       <aside
         className={`
-          shrink-0 border-r border-zinc-200
+          fixed inset-y-0 left-0 z-50
+          border-r border-zinc-200
+          bg-white
+
           transition-all duration-300 ease-in-out
-          ${isSidebarOpen ? "w-72" : "w-16"}
+
+          md:relative
+          md:z-auto
+
+          ${
+            isSidebarOpen
+              ? "w-72 translate-x-0"
+              : "w-16 -translate-x-full md:translate-x-0"
+          }
         `}
       >
         <Sidebar
@@ -62,10 +98,13 @@ function App() {
         />
       </aside>
 
+      {/* Main Chat */}
       <ChatScreen
         activeChat={activeChat}
         setChats={setChats}
         onCreateChat={handleNewChat}
+        onToggleSidebar={handleToggleSidebar}
+        isSidebarOpen={isSidebarOpen}
       />
     </div>
   );
