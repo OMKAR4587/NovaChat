@@ -2,21 +2,24 @@ import { useState } from "react";
 
 import Sidebar from "./features/conversation/components/Sidebar";
 import ChatScreen from "./features/chat/components/ChatScreen";
+import Modal from "./components/ui/modal";
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isDeleteAllChat, setIsDeleteAllChat] = useState(false);
 
   const [chats, setChats] = useState([]);
-
   const [activeChatId, setActiveChatId] = useState(null);
 
   const activeChat =
     chats.find((chat) => chat.id === activeChatId) || null;
 
+  // Sidebar toggle
   const handleToggleSidebar = () => {
     setIsSidebarOpen((prev) => !prev);
   };
 
+  // Create new chat
   const handleNewChat = () => {
     const newChat = {
       id: crypto.randomUUID(),
@@ -29,7 +32,7 @@ function App() {
     setChats((prev) => [newChat, ...prev]);
     setActiveChatId(newChat.id);
 
-    // Mobile वर new chat केल्यावर sidebar close
+    // Close sidebar on mobile
     if (window.innerWidth < 768) {
       setIsSidebarOpen(false);
     }
@@ -37,15 +40,24 @@ function App() {
     return newChat;
   };
 
+  // Delete all chats
   const handleDeleteAll = () => {
     setChats([]);
     setActiveChatId(null);
+    setIsDeleteAllChat(false);
   };
+  const handleDeleteChat = (chatId) => {
+  setChats((prev) => prev.filter((chat) => chat.id !== chatId));
 
+  if (activeChatId === chatId) {
+    setActiveChatId(null);
+  }
+};
+  // Select chat
   const handleSelectChat = (chatId) => {
     setActiveChatId(chatId);
 
-    // Mobile वर chat select केल्यावर sidebar close
+    // Close sidebar on mobile
     if (window.innerWidth < 768) {
       setIsSidebarOpen(false);
     }
@@ -53,18 +65,14 @@ function App() {
 
   return (
     <div className="relative flex h-dvh w-full overflow-hidden bg-[#fafafa]">
+
       {/* Mobile Overlay */}
       {isSidebarOpen && (
         <button
           type="button"
           aria-label="Close sidebar"
           onClick={handleToggleSidebar}
-          className="
-            fixed inset-0 z-40
-            bg-black/20
-            backdrop-blur-[2px]
-            md:hidden
-          "
+          className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px] md:hidden"
         />
       )}
 
@@ -74,12 +82,8 @@ function App() {
           fixed inset-y-0 left-0 z-50
           border-r border-zinc-200
           bg-white
-
           transition-all duration-300 ease-in-out
-
-          md:relative
-          md:z-auto
-
+          md:relative md:z-auto
           ${
             isSidebarOpen
               ? "w-72 translate-x-0"
@@ -88,10 +92,12 @@ function App() {
         `}
       >
         <Sidebar
+          onDeleteChat={handleDeleteChat}
+          isDeleteAllChat={isDeleteAllChat}
+          setIsDeleteAllChat={setIsDeleteAllChat}
           isSidebarOpen={isSidebarOpen}
           onToggleSidebar={handleToggleSidebar}
           onNewChat={handleNewChat}
-          onDeleteAll={handleDeleteAll}
           chats={chats}
           activeChatId={activeChatId}
           onSelectChat={handleSelectChat}
@@ -106,6 +112,16 @@ function App() {
         onToggleSidebar={handleToggleSidebar}
         isSidebarOpen={isSidebarOpen}
       />
+
+      {/* Delete All Modal */}
+      {isDeleteAllChat && (
+        <Modal
+          chats={chats}
+          onDeleteAll={handleDeleteAll}
+          setIsDeleteAllChat={setIsDeleteAllChat}
+          isDeleteAllChat={isDeleteAllChat}
+        />
+      )}
     </div>
   );
 }

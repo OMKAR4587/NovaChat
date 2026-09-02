@@ -13,3 +13,20 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+.user-message {
+  position: relative;
+  z-index: 3;
+}
+.user-message::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+  width: 30px;
+  height: 25px;
+  z-index: -1;
+  background-color: inherit;
+}

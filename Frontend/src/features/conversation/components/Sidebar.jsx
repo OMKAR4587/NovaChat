@@ -8,18 +8,22 @@ import {
   SquarePen,
   Trash,
 } from "lucide-react";
+import Modal from "../../../components/ui/modal";
 
 function Sidebar({
   isSidebarOpen,
   onToggleSidebar,
   onNewChat,
-  onDeleteAll,
+  onDeleteChat,
+  setIsDeleteAllChat,
+  isDeleteAllChat,
   chats,
   activeChatId,
   onSelectChat,
 }) {
   const [isHovered, setIsHovered] = useState(false);
-
+  const [isChatHovered, setIsChatHovered] = useState(false);
+  const deleteIcon = !isSidebarOpen && isHovered ? <Trash size={18} /> : "";
   const icon =
     !isSidebarOpen && isHovered ? (
       <PanelLeft size={18} />
@@ -50,11 +54,7 @@ function Sidebar({
             hover:scale-105
             active:scale-95
           "
-          aria-label={
-            isSidebarOpen
-              ? "Close sidebar"
-              : "Open sidebar"
-          }
+          aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
         >
           {icon}
         </button>
@@ -66,9 +66,7 @@ function Sidebar({
               NovaChat
             </h1>
 
-            <p className="text-xs text-zinc-500">
-              Your AI assistant
-            </p>
+            <p className="text-xs text-zinc-500">Your AI assistant</p>
           </div>
         )}
 
@@ -112,22 +110,15 @@ function Sidebar({
             ${isSidebarOpen ? "gap-3" : "justify-center"}
           `}
         >
-          <SquarePen
-            size={19}
-            className="shrink-0"
-          />
+          <SquarePen size={19} className="shrink-0" />
 
-          {isSidebarOpen && (
-            <span className="whitespace-nowrap">
-              New chat
-            </span>
-          )}
+          {isSidebarOpen && <span className="whitespace-nowrap">New chat</span>}
         </button>
 
         {/* Delete All */}
         <button
           type="button"
-          onClick={onDeleteAll}
+          onClick={() => setIsDeleteAllChat(!isDeleteAllChat)}
           title={!isSidebarOpen ? "Delete all" : undefined}
           className={`
             flex w-full cursor-pointer
@@ -141,15 +132,10 @@ function Sidebar({
             ${isSidebarOpen ? "gap-3" : "justify-center"}
           `}
         >
-          <Trash
-            size={19}
-            className="shrink-0"
-          />
+          <Trash size={19} className="shrink-0" />
 
           {isSidebarOpen && (
-            <span className="whitespace-nowrap">
-              Delete all
-            </span>
+            <span className="whitespace-nowrap">Delete all</span>
           )}
         </button>
       </div>
@@ -182,33 +168,30 @@ function Sidebar({
                 </div>
               ) : (
                 chats.map((chat) => {
-                  const isActive =
-                    chat.id === activeChatId;
+                  const isActive = chat.id === activeChatId;
 
                   return (
-                    <button
+                    <div
                       key={chat.id}
-                      type="button"
-                      onClick={() =>
-                        onSelectChat(chat.id)
-                      }
-                      className={`
-                        group flex w-full
-                        min-w-0 items-center
-                        rounded-lg px-3 py-2.5
-                        text-left text-sm
-                        transition-all duration-200
-                        ${
-                          isActive
-                            ? "bg-zinc-100 font-medium text-zinc-900"
-                            : "text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
-                        }
-                      `}
+                      className="group flex items-center gap-2 rounded-xl px-3 py-2.5 hover:bg-zinc-100"
                     >
-                      <span className="truncate">
+                      <button
+                        type="button"
+                        onClick={() => onSelectChat(chat.id)}
+                        className="min-w-0 flex-1 truncate text-left text-sm text-zinc-700"
+                      >
                         {chat.title}
-                      </span>
-                    </button>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => onDeleteChat(chat.id)}
+                        aria-label="Delete chat"
+                        className="flex size-7 shrink-0 items-center justify-center rounded-lg text-zinc-400 opacity-0 transition hover:bg-zinc-200 hover:text-red-600 group-hover:opacity-100"
+                      >
+                        <Trash size={14} />
+                      </button>
+                    </div>
                   );
                 })
               )}
@@ -230,11 +213,7 @@ function Sidebar({
             transition-all duration-200
             hover:bg-zinc-100
             active:scale-[0.98]
-            ${
-              isSidebarOpen
-                ? "gap-3 px-1 py-2.5"
-                : "justify-center p-2"
-            }
+            ${isSidebarOpen ? "gap-3 px-1 py-2.5" : "justify-center p-2"}
           `}
         >
           <div
@@ -253,10 +232,7 @@ function Sidebar({
             <>
               <span>Guest</span>
 
-              <ChevronUp
-                className="absolute right-2 text-zinc-600"
-                size={18}
-              />
+              <ChevronUp className="absolute right-2 text-zinc-600" size={18} />
             </>
           )}
         </button>

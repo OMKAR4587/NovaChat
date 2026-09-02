@@ -8,7 +8,7 @@ function MessageBubble({ message }) {
   if (isUser) {
     return (
       <div className="flex w-full justify-end py-3">
-        <div className="max-w-[85%] rounded-2xl bg-zinc-900 px-4 py-3 text-[15px] leading-6 text-white shadow-sm sm:max-w-[70%]">
+        <div className="user-message max-w-[85%] rounded-2xl bg-zinc-900 px-4 py-3 text-[15px] leading-6 text-white shadow-sm sm:max-w-[70%]">
           {message.content}
         </div>
       </div>
