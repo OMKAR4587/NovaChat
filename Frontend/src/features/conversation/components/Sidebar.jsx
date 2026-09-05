@@ -7,8 +7,8 @@ import {
   PanelLeft,
   SquarePen,
   Trash,
+  Ellipsis,
 } from "lucide-react";
-import Modal from "../../../components/ui/modal";
 
 function Sidebar({
   isSidebarOpen,
@@ -22,6 +22,7 @@ function Sidebar({
   onSelectChat,
 }) {
   const [isHovered, setIsHovered] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState(null);
   const deleteIcon = !isSidebarOpen && isHovered ? <Trash size={18} /> : "";
   const icon =
     !isSidebarOpen && isHovered ? (
@@ -131,7 +132,7 @@ function Sidebar({
             ${isSidebarOpen ? "gap-3" : "justify-center"}
           `}
         >
-          <Trash size={19} className="shrink-0" />
+          <Trash  size={19} className="shrink-0" />
 
           {isSidebarOpen && (
             <span className="whitespace-nowrap">Delete all</span>
@@ -189,14 +190,31 @@ function Sidebar({
                         {chat.title}
                       </button>
 
-                      <button
-                        type="button"
-                        onClick={() => onDeleteChat(chat.id)}
-                        aria-label="Delete chat"
-                        className="flex size-7 shrink-0 items-center justify-center rounded-lg text-zinc-400 opacity-0 transition hover:bg-zinc-200 hover:text-red-600 group-hover:opacity-100"
-                      >
-                        <Trash size={14} />
+                     <div className="relative shrink-0">
+                      <button type="button" onClick={()=>setOpenMenuId((prev)=>prev===chat.id?null:chat.id)}
+                      aria-label="chat action"
+                       className="flex size-7 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-zinc-200 hover:text-zinc-700 ">
+                        <Ellipsis size={18}/>
                       </button>
+                      {openMenuId===chat.id && (
+                        <div className="absolute right-0 top-9 z-30 p-1 w-32 rounded-xl border border-zinc-200 bg-white shadow-lg">
+                          <button
+                            type="button"
+                            onClick={() => setOpenMenuId(null)}
+                            className="w-full rounded-lg px-3 py-2 text-left text-sm text-zinc-700 transition hover:bg-zinc-50"
+                          >
+                            Rename
+                          </button>
+                          <button
+                          type="button" onClick={()=>{
+                            setOpenMenuId(null)
+                            onDeleteChat(chat.id)}}
+                            className="w-full rounded-lg px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50">
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                     </div>
                     </div>
                   );
                 })

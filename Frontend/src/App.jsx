@@ -7,9 +7,9 @@ import Modal from "./components/ui/modal";
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDeleteAllChat, setIsDeleteAllChat] = useState(false);
+  const [chatToDelete, setChatToDelete] = useState(null);
 
   const [isHydrated, setIsHydrated] = useState(false);
-
   const [chats, setChats] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
 
@@ -109,6 +109,11 @@ function App() {
     }
   };
 
+  // Open single chat delete modal
+  const handleSetChatToDelete = (chatId) => {
+    setChatToDelete(chatId);
+  };
+
   // Select chat
   const handleSelectChat = (chatId) => {
     setActiveChatId(chatId);
@@ -147,7 +152,7 @@ function App() {
         `}
       >
         <Sidebar
-          onDeleteChat={handleDeleteChat}
+          onDeleteChat={handleSetChatToDelete}
           isDeleteAllChat={isDeleteAllChat}
           setIsDeleteAllChat={setIsDeleteAllChat}
           isSidebarOpen={isSidebarOpen}
@@ -168,13 +173,19 @@ function App() {
         isSidebarOpen={isSidebarOpen}
       />
 
-      {/* Delete All Modal */}
-      {isDeleteAllChat && (
+      {/* Delete Modal */}
+      {(isDeleteAllChat || chatToDelete) && (
         <Modal
           chats={chats}
           onDeleteAll={handleDeleteAll}
           setIsDeleteAllChat={setIsDeleteAllChat}
           isDeleteAllChat={isDeleteAllChat}
+          chatToDelete={chatToDelete}
+          onDeleteChat={() => {
+            handleDeleteChat(chatToDelete);
+            setChatToDelete(null);
+          }}
+          onCancelDelete={() => setChatToDelete(null)}
         />
       )}
     </div>
