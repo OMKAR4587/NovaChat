@@ -1,9 +1,16 @@
-import { useState } from "react";
+import { useState, useEffect} from "react";
 import { sendChatMessage } from "../service/ChatService";
 
 function useChat({ activeChat, setChats, onCreateChat }) {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [lastFailedRequest, setLastFailedRequest] = useState(null);
+
+  useEffect(() => {
+    setError(null);
+    setLastFailedRequest(null);
+  }, [activeChat?.id]);
 
   const updateChatMessages = (chatId, messages) => {
     setChats((prevChats) =>
@@ -19,12 +26,45 @@ function useChat({ activeChat, setChats, onCreateChat }) {
     );
   };
 
+  const createChatTitle = (chatId, message) => {
+    const title = message.length > 32 ? `${message.slice(0, 32)}...` : message;
+
+    setChats((prevChats) =>
+      prevChats.map((chat) =>
+        chat.id === chatId
+          ? {
+              ...chat,
+              title,
+            }
+          : chat,
+      ),
+    );
+  };
+
+  const requestAIResponse = async (chatId, messages) => {
+    const data = await sendChatMessage(messages);
+
+    const aiMessage = {
+      id: crypto.randomUUID(),
+      role: "assistant",
+      content: data?.reply || "Sorry, I couldn't generate a response.",
+    };
+
+    const finalMessages = [...messages, aiMessage];
+
+    updateChatMessages(chatId, finalMessages);
+
+    return finalMessages;
+  };
+
   const sendMessage = async () => {
     const trimmedMessage = input.trim();
 
     if (!trimmedMessage || isLoading) {
       return;
     }
+
+    setError(null);
 
     let currentChat = activeChat;
 
@@ -44,55 +84,66 @@ function useChat({ activeChat, setChats, onCreateChat }) {
 
     const updatedMessages = [...(currentChat.messages || []), userMessage];
 
-    // Clear input immediately
     setInput("");
-
-    // Show user message immediately
     updateChatMessages(currentChat.id, updatedMessages);
-
     setIsLoading(true);
 
     try {
-      const data = await sendChatMessage(updatedMessages);
+      await requestAIResponse(currentChat.id, updatedMessages);
 
-      const aiMessage = {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: data?.reply || "Sorry, I couldn't generate a response.",
-      };
+      setLastFailedRequest(null);
 
-      const finalMessages = [...updatedMessages, aiMessage];
-
-      updateChatMessages(currentChat.id, finalMessages);
-
-      // Create title from first message
       if (!currentChat.messages || currentChat.messages.length === 0) {
-        const title =
-          trimmedMessage.length > 32
-            ? `${trimmedMessage.slice(0, 32)}...`
-            : trimmedMessage;
-
-        setChats((prevChats) =>
-          prevChats.map((chat) =>
-            chat.id === currentChat.id
-              ? {
-                  ...chat,
-                  title,
-                }
-              : chat,
-          ),
-        );
+        createChatTitle(currentChat.id, trimmedMessage);
       }
     } catch (error) {
       console.error("Chat error:", error);
 
-      const errorMessage = {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: error?.message || "Something went wrong. Please try again.",
-      };
+      setLastFailedRequest({
+        chatId: currentChat.id,
+        messages: updatedMessages,
+      });
 
-      updateChatMessages(currentChat.id, [...updatedMessages, errorMessage]);
+      setError(
+        "The AI service is temporarily busy. Please try again in a moment.",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const retryMessage = async () => {
+    if (!lastFailedRequest || isLoading) {
+      return;
+    }
+
+    if (!activeChat || activeChat.id !== lastFailedRequest.chatId) {
+      return;
+    }
+
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      await requestAIResponse(
+        lastFailedRequest.chatId,
+        lastFailedRequest.messages,
+      );
+
+      setLastFailedRequest(null);
+
+      if (lastFailedRequest.messages.length === 1) {
+        createChatTitle(
+          lastFailedRequest.chatId,
+          lastFailedRequest.messages[0].content,
+        );
+      }
+    } catch (error) {
+      console.error("Chat retry error:", error);
+
+      setError(
+        "The AI service is temporarily busy. Please try again in a moment.",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -102,7 +153,9 @@ function useChat({ activeChat, setChats, onCreateChat }) {
     input,
     setInput,
     isLoading,
+    error,
     sendMessage,
+    retryMessage,
   };
 }
 

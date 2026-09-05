@@ -22,7 +22,6 @@ function Sidebar({
   onSelectChat,
 }) {
   const [isHovered, setIsHovered] = useState(false);
-  const [isChatHovered, setIsChatHovered] = useState(false);
   const deleteIcon = !isSidebarOpen && isHovered ? <Trash size={18} /> : "";
   const icon =
     !isSidebarOpen && isHovered ? (
@@ -173,12 +172,19 @@ function Sidebar({
                   return (
                     <div
                       key={chat.id}
-                      className="group flex items-center gap-2 rounded-xl px-3 py-2.5 hover:bg-zinc-100"
+                      className={`
+                        group flex items-center gap-2 rounded-xl px-3 py-2 transition cursor-pointer
+                        ${isActive ? "bg-zinc-100" : "hover:bg-zinc-50"}
+                      `}
                     >
                       <button
                         type="button"
                         onClick={() => onSelectChat(chat.id)}
-                        className="min-w-0 flex-1 truncate text-left text-sm text-zinc-700"
+                        className={`min-w-0 flex-1 truncate text-left text-sm cursor-pointer ${
+                          isActive
+                            ? "font-medium text-zinc-900"
+                            : "text-zinc-700"
+                        }`}
                       >
                         {chat.title}
                       </button>

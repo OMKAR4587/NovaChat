@@ -6,13 +6,15 @@ import {
   Lightbulb,
   MessageSquare,
   Menu,
+  AlertTriangle,
+  RotateCcw,
 } from "lucide-react";
 
 import MessageBubble from "./MessageBubble";
 import useChat from "../../../hooks/useChat";
 
 function ChatScreen({ activeChat, setChats, onCreateChat, onToggleSidebar }) {
-  const { input, setInput, isLoading, sendMessage } = useChat({
+  const { input, setInput, isLoading,error,retryMessage, sendMessage } = useChat({
     activeChat,
     setChats,
     onCreateChat,
@@ -100,7 +102,7 @@ function ChatScreen({ activeChat, setChats, onCreateChat, onToggleSidebar }) {
       </header>
 
       {/* Main Content */}
-      <div className="min-h-0 flex-1 overflow-y-auto pt-14">
+      <div className="min-h-0 flex-1 overflow-y-auto pt-7">
         {messages.length === 0 ? (
           <WelcomeScreen
             suggestions={suggestions}
@@ -115,6 +117,24 @@ function ChatScreen({ activeChat, setChats, onCreateChat, onToggleSidebar }) {
         )}
       </div>
 
+      {
+        error && (
+          <div className="shrink-0 px-3 pb-2 sm:px-6">
+            <div className="mx-auto flex w-full max-w-4xl items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-1.5">
+              <div className="flex min-w-0 items-center gap-2.5">
+                <AlertTriangle size={16} className="shrink-0 text-amber-300"/>
+                <p className="text-xs text-amber-800">{error}</p>
+              </div>
+
+              <button type="button" onClick={retryMessage} disabled={isLoading}
+              className="flex shrink-0 items-center gap-1.5 rounded-r-lg px-2.5 py-1.5 text-xs font-medium text-zinc-700 transition hover:bg-white active:scale-95 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50">
+                <RotateCcw/>
+                Try again
+              </button>
+            </div>
+          </div>
+        )
+      }
       {/* Composer */}
       <ChatComposer
         input={input}

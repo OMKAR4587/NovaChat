@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import Sidebar from "./features/conversation/components/Sidebar";
 import ChatScreen from "./features/chat/components/ChatScreen";
@@ -8,11 +8,62 @@ function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isDeleteAllChat, setIsDeleteAllChat] = useState(false);
 
+  const [isHydrated, setIsHydrated] = useState(false);
+
   const [chats, setChats] = useState([]);
   const [activeChatId, setActiveChatId] = useState(null);
 
   const activeChat =
     chats.find((chat) => chat.id === activeChatId) || null;
+
+  // Load chats from localStorage
+  useEffect(() => {
+    const savedChats = localStorage.getItem("novachat-chats");
+    const savedActiveChatId =
+      localStorage.getItem("novachat-active-chat");
+
+    if (savedChats) {
+      try {
+        setChats(JSON.parse(savedChats));
+      } catch (error) {
+        console.error("Failed to load chats:", error);
+      }
+    }
+
+    if (savedActiveChatId) {
+      setActiveChatId(savedActiveChatId);
+    }
+
+    setIsHydrated(true);
+  }, []);
+
+  // Save chats to localStorage
+  useEffect(() => {
+    if (!isHydrated) {
+      return;
+    }
+
+    localStorage.setItem(
+      "novachat-chats",
+      JSON.stringify(chats),
+    );
+  }, [chats, isHydrated]);
+
+  // Save active chat to localStorage
+  useEffect(() => {
+    if (!isHydrated) {
+      return;
+    }
+
+    if (activeChatId) {
+      localStorage.setItem(
+        "novachat-active-chat",
+        activeChatId,
+      );
+    } else {
+      localStorage.removeItem("novachat-active-chat");
+    }
+  }, [activeChatId, isHydrated]);
 
   // Sidebar toggle
   const handleToggleSidebar = () => {
@@ -46,13 +97,18 @@ function App() {
     setActiveChatId(null);
     setIsDeleteAllChat(false);
   };
-  const handleDeleteChat = (chatId) => {
-  setChats((prev) => prev.filter((chat) => chat.id !== chatId));
 
-  if (activeChatId === chatId) {
-    setActiveChatId(null);
-  }
-};
+  // Delete single chat
+  const handleDeleteChat = (chatId) => {
+    setChats((prev) =>
+      prev.filter((chat) => chat.id !== chatId),
+    );
+
+    if (activeChatId === chatId) {
+      setActiveChatId(null);
+    }
+  };
+
   // Select chat
   const handleSelectChat = (chatId) => {
     setActiveChatId(chatId);
@@ -65,7 +121,6 @@ function App() {
 
   return (
     <div className="relative flex h-dvh w-full overflow-hidden bg-[#fafafa]">
-
       {/* Mobile Overlay */}
       {isSidebarOpen && (
         <button
