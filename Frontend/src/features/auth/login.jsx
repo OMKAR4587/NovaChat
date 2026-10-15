@@ -1,13 +1,11 @@
 import { Sparkles, ArrowUpRight } from "lucide-react";
-
+import { supabase } from "../../service/supabase";
 function Login() {
   return (
-    <main className="min-h-dvh bg-[#f7f7f8] p-3 sm:p-5">
-      <div className="mx-auto flex min-h-[calc(100dvh-1.5rem)] max-w-6xl overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm sm:min-h-[calc(100dvh-2.5rem)]">
-
+    <main className="max-h-screen bg-[#f7f7f8] p-3 sm:p-5">
+      <div className="mx-auto flex min-h-[calc(100dvh-1.5rem)] max-w-5xl overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm sm:min-h-[calc(100dvh-2.5rem)]">
         {/* Left — Hero */}
-        <section className="relative hidden w-1/2 overflow-hidden bg-zinc-950 p-1 text-white lg:flex lg:flex-col lg:justify-between xl:p-14">
-
+        <section className="relative hidden w-1/2 overflow-hidden bg-zinc-950 px-8 py-5  text-white lg:flex lg:flex-col lg:justify-between ">
           {/* Ambient Glow */}
           <div className="absolute -left-24 -top-24 size-80 rounded-full bg-white/10 blur-3xl" />
           <div className="absolute -bottom-32 -right-20 size-96 rounded-full bg-zinc-700/30 blur-3xl" />
@@ -51,8 +49,8 @@ function Login() {
             </h2>
 
             <p className="mt-6 max-w-md text-sm leading-6 text-zinc-400 xl:text-base">
-              Turn ideas into conversations, code, content, and
-              possibilities with NovaChat.
+              Turn ideas into conversations, code, content, and possibilities
+              with NovaChat.
             </p>
 
             {/* Visual */}
@@ -84,9 +82,8 @@ function Login() {
         </section>
 
         {/* Right — Login */}
-        <section className="flex w-full items-center justify-center p-5 sm:p-8 lg:w-1/2 lg:p-12">
+        <section className="flex w-full items-center justify-center px-5 py-5 sm:px-8  lg:w-1/2">
           <div className="w-full max-w-sm">
-
             {/* Mobile Branding */}
             <div className="mb-8 text-center lg:hidden">
               <div className="mx-auto mb-3 flex size-12 items-center justify-center rounded-2xl bg-zinc-900 text-white">
@@ -99,8 +96,8 @@ function Login() {
             </div>
 
             {/* Heading */}
-            <div className="mb-7">
-              <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+            <div className="mb-7 flex flex-col items-center text-center sm:items-baseline sm:text-left">
+              <h1 className="text-2xl font-semibold  tracking-tight text-zinc-900">
                 Welcome back
               </h1>
 
@@ -112,7 +109,18 @@ function Login() {
             {/* Google */}
             <button
               type="button"
-              className="flex h-11 w-full items-center justify-center gap-3 rounded-xl border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-800 transition hover:bg-zinc-50 active:scale-[0.98]"
+              onClick={async () => {
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                  provider: "google",
+                  options: {
+                    redirectTo: window.location.origin,
+                  },
+                });
+
+                console.log("OAuth data:", data);
+                console.log("OAuth error:", error);
+              }}
+              className="flex h-11 w-full items-center cursor-pointer justify-center gap-3 rounded-xl border border-zinc-200 bg-white px-4 text-sm font-medium text-zinc-800 transition hover:bg-zinc-50 active:scale-[0.98]"
             >
               <span className="text-sm font-semibold">G</span>
               Continue with Google
@@ -131,7 +139,6 @@ function Login() {
 
             {/* Form */}
             <form className="space-y-4">
-
               {/* Email */}
               <div>
                 <label
@@ -197,8 +204,7 @@ function Login() {
 
             {/* Terms */}
             <p className="mt-8 text-center text-[11px] leading-5 text-zinc-400">
-              By continuing, you agree to NovaChat's Terms
-              and Privacy Policy.
+              By continuing, you agree to NovaChat's Terms and Privacy Policy.
             </p>
           </div>
         </section>

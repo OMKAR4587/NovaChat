@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import Sidebar from "./features/conversation/components/Sidebar";
 import ChatScreen from "./features/chat/components/ChatScreen";
-import Modal from "./components/ui/modal";
+import Modal from "./components/ui/Modal";
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
